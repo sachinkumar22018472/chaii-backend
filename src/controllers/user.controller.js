@@ -1,9 +1,9 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
-import {ApiError} from "'../utils/ApiError.js"
+import {ApiError} from "../utils/ApiError.js"
 import { User } from "../models/user.model.js";
 import { uploadOneCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-
+import path from "path";
 
 
 const registerUser = asyncHandler( async (req, res) => {
@@ -19,7 +19,7 @@ const registerUser = asyncHandler( async (req, res) => {
     //return response
 
     const {fullname, email, username, password, } = req.body
-    console.log("email: ", email);
+    //console.log("email: ", email);
 
     if(
         [fullname, email, username, password].some((field) => 
@@ -30,18 +30,27 @@ const registerUser = asyncHandler( async (req, res) => {
 
 
 
-    const existedUser = User.findOne({
+    const existedUser = await User.findOne({
         $or: [{username}, {email}]
     })
+   
+       
+
 
     if (existedUser) {
         throw new ApiError(409, "User with username or email already exist")
     }
 
 
-    const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    console.log(req.files)
 
+    const avatarLocalPath = req.files?.avatar[0]?.path;
+    //const coverImageLocalPath = req.files?.coverImage[0]?.path;
+
+    let coverImageLocalPath;
+    if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
+        coverImageLocalPath = req.files.coverImage[0].path
+    }
 
 
     if(!avatarLocalPath) {
@@ -50,8 +59,18 @@ const registerUser = asyncHandler( async (req, res) => {
 
 
 
-    const avatar = await uploadOneCloudinary(avatarLocalPath)
-    const coverImage = await uploadOneCloudinary(coverImageLocalPath)
+    const avatar = await uploadOneCloudinary(
+        path.resolve(avatarLocalPath)
+    );
+
+    let coverImage = null;
+
+    if (coverImageLocalPath) {
+       coverImage = await uploadOneCloudinary(
+        path.resolve(coverImageLocalPath)
+    );
+}
+
 
 
 
