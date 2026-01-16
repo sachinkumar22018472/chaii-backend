@@ -265,6 +265,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             )
         )
     } catch (error) {
+        console.log("Error in resfresh Token function : " ,error)
         throw new ApiError(401, error?.message || "Invalid refresh token")
     }
 })
@@ -329,7 +330,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     }
 
     //TODO: delete old image - assignment
-
+    
     
     const avatar = await uploadOneCloudinary(avatarLocalPath)
 
